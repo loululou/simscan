@@ -15,4 +15,4 @@ func main() {
 	target := os.Args[1]
 	fmt.Printf("Scanning target: %s\n", target)
 	pkg.ScanTarget(target)
-}
+} 
