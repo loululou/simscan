@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"simscan/internal"
+	"github.com/loululou/simscan/pkg"
 )
 
 func main() {
