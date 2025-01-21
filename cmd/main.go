@@ -16,6 +16,3 @@ func main() {
 	fmt.Printf("Scanning target: %s\n", target)
 	pkg.ScanTarget(target)
 }
-
-
-
