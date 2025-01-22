@@ -1,6 +1,6 @@
 This is for practice.  
 
-# Installation
+# Installation (Linux)
 ```
 git clone https://github.com/loululou/simscan
 cd simscan
