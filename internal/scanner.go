@@ -1,23 +1,84 @@
-// Basic function
 package internal
 
 import (
-	"net"
 	"fmt"
+	"net"
+	"strings"
+	"sync"
 	"time"
 )
 
-func ScanTarget(target string){
-	ports := []int{21, 22, 25, 53, 80, 110, 443, 3306, 3389, 445, 8080, 8081, 8082, 8083, 8084, 10000}
+// Scan a range of IPs
+func ScanRange(ipRange string, ports []int) {
+	ips, err := ParseIPRange(ipRange)
+	if err != nil {
+		fmt.Println("[-] Invalid IP range:", err)
+		return
+	}
+
+	var wg sync.WaitGroup
+	for _, ip := range ips {
+		wg.Add(1)
+		go func(ip string) {
+			defer wg.Done()
+			scanHost(ip, ports)
+		}(ip)
+	}
+	wg.Wait()
+}
+
+func scanHost(ip string, ports []int) {
 	for _, port := range ports {
-		address := fmt.Sprintf("%s:%d", target, port)
-		conn, err := net.DialTimeout("tcp", address, 2*time.Second)
+		address := fmt.Sprintf("%s:%d", ip, port)
+		conn, err := net.DialTimeout("tcp", address, 1*time.Second)
 		if err == nil {
-			fmt.Printf("[+] Port %d is open on %s\n", port, target)
+			fmt.Printf("[+] %s:%d is open\n", ip, port)
 			conn.Close()
-		} else {
-			fmt.Printf("[-] Port %d is closed on %s\n", port, target)
 		}
 	}
 }
 
+// Parse IP range (CIDR or explicit range)
+func ParseIPRange(ipRange string) ([]string, error) {
+	var ips []string
+
+	// Check if input is in CIDR format
+	if strings.Contains(ipRange, "/") {
+		ip, ipnet, err := net.ParseCIDR(ipRange)
+		if err != nil {
+			return nil, err
+		}
+
+		for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
+			ips = append(ips, ip.String())
+		}
+	} else if strings.Contains(ipRange, "-") {
+		// Handle range input (e.g., 192.168.1.1-192.168.1.100)
+		parts := strings.Split(ipRange, "-")
+		startIP := net.ParseIP(parts[0])
+		endIP := net.ParseIP(parts[1])
+
+		if startIP == nil || endIP == nil {
+			return nil, fmt.Errorf("invalid IP address range")
+		}
+
+		for ip := startIP; !ip.Equal(endIP); inc(ip) {
+			ips = append(ips, ip.String())
+		}
+		ips = append(ips, endIP.String()) // Add the last IP
+	} else {
+		ips = append(ips, ipRange) // Single IP input
+	}
+
+	return ips, nil
+}
+
+// Increment IP address
+func inc(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
+	}
+}
