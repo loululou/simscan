@@ -15,6 +15,6 @@ func main() {
 	}
 
 	target := os.Args[1]
-	fmt.Println("Scanning target: %s\n", target)
+	fmt.Println("Scanning target:", target)
 	internal.ScanTarget(target)
 }
