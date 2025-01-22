@@ -30,13 +30,14 @@ func ScanRange(ipRange string, ports []int) {
 func scanHost(ip string, ports []int) {
 	for _, port := range ports {
 		address := fmt.Sprintf("%s:%d", ip, port)
-		conn, err := net.DialTimeout("tcp", address, 1*time.Second)
+		conn, err := net.DialTimeout("tcp", address, 2*time.Second)
 		if err == nil {
 			fmt.Printf("[+] %s:%d is open\n", ip, port)
 			conn.Close()
 		}
 	}
 }
+
 
 // Parse IP range (CIDR or explicit range)
 func ParseIPRange(ipRange string) ([]string, error) {
@@ -82,3 +83,4 @@ func inc(ip net.IP) {
 		}
 	}
 }
+
